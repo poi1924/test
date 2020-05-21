@@ -27,15 +27,15 @@ if (!is_null($events['events'])) {
 
 			// Build message to reply back
 
-			$Topic = "NodeMCU1" ;
+			$Topic = "NodeMCU" ;
 			getMqttfromlineMsg($Topic,$text);
 			   
 			
 		}
 	}
 }
-//$Topic = "NodeMCU1" ;
-//$text = "Test";
-//getMqttfromlineMsg($Topic,$text);
+$Topic = "NodeMCU" ;
+$text = "Test";
+getMqttfromlineMsg($Topic,$text);
 echo "OK3";
 ?>
