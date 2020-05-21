@@ -47,5 +47,5 @@
 }
  //$Topic = "NodeMCU1";
 // $lineMsg = "CHECK";
- getMqttfromlineMsg($Topic,$lineMsg);
+// getMqttfromlineMsg($Topic,$lineMsg);
 ?>
