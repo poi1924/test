@@ -1,41 +1,57 @@
 <?php
- require("pub.php");
- require("line.php");
 
-// Get POST body content
-$content = file_get_contents('php://input');
-// Parse JSON
 
-$events = json_decode($content, true);
-// Validate parsed JSON data
-if (!is_null($events['ESP'])) {
-	
-	send_LINE($events['ESP']);
-		
-	echo "OK";
-	}
-if (!is_null($events['events'])) {
-	echo "line bot";
-	// Loop through each event
-	foreach ($events['events'] as $event) {
-		// Reply only when message sent is in 'text' format
-		if ($event['type'] == 'message' && $event['message']['type'] == 'text') {
-			// Get text sent
-			$text = $event['message']['text'];
-			// Get replyToken
-			$replyToken = $event['replyToken'];
+$API_URL = 'https://api.line.me/v2/bot/message';
+$ACCESS_TOKEN = 'vejbuleEtaB0Q2MofsBC+KQGZEjknt8Ap1rTk3BqhEifT30ULNFMr3T6Wfs8sGgnNB/14e
+VsfMcuTQnXHx5uGtKNa1dlk0ffiw4fKtK75uJ8M6OGx5NPIuTUQb/QWWbAlk0nRGfP8JlrO/0kI7NM/AdB04t89/1O/w1cDnyilFU='; 
+$channelSecret = '6bf439a7916993df52dfb2e0d8f4972d';
 
-			// Build message to reply back
 
-			$Topic = "NodeMCU1" ;
-			getMqttfromlineMsg($Topic,$text);
-			   
-			
-		}
-	}
+$POST_HEADER = array('Content-Type: application/json', 'Authorization: Bearer ' . $ACCESS_TOKEN);
+
+$request = file_get_contents('php://input');   // Get request content
+$request_array = json_decode($request, true);   // Decode JSON to Array
+
+
+
+if ( sizeof($request_array['events']) > 0 ) {
+
+    foreach ($request_array['events'] as $event) {
+
+        $reply_message = '';
+        $reply_token = $event['replyToken'];
+
+
+        $data = [
+            'replyToken' => $reply_token,
+            'messages' => [['type' => 'text', 'text' => json_encode($request_array)]]
+        ];
+        $post_body = json_encode($data, JSON_UNESCAPED_UNICODE);
+
+        $send_result = send_reply_message($API_URL.'/reply', $POST_HEADER, $post_body);
+
+        echo "Result: ".$send_result."\r\n";
+        
+    }
 }
-$Topic = "NodeMCU1" ;
-$text = "Test";
-getMqttfromlineMsg($Topic,$text);
-echo "OK3";
+
+echo "OK";
+
+
+
+
+function send_reply_message($url, $post_header, $post_body)
+{
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $post_header);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $post_body);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+    $result = curl_exec($ch);
+    curl_close($ch);
+
+    return $result;
+}
+
 ?>
