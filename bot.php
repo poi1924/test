@@ -11,7 +11,7 @@ $POST_HEADER = array('Content-Type: application/json', 'Authorization: Bearer ' 
 
 $request = file_get_contents('php://input');   // Get request content
 $request_array = json_decode($request, true);   // Decode JSON to Array
-
+echo "OK1";
 
 function send_reply_message($url, $post_header, $post_body)
 {
@@ -23,11 +23,11 @@ function send_reply_message($url, $post_header, $post_body)
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
     $result = curl_exec($ch);
     curl_close($ch);
-
+echo "OK2";
     return $result;
 }
 if ( sizeof($request_array['events']) > 0 ) {
-
+echo "OK3";
     foreach ($request_array['events'] as $event) {
 
         $reply_message = '';
@@ -44,6 +44,7 @@ if ( sizeof($request_array['events']) > 0 ) {
         $send_result = send_reply_message($API_URL.'/reply', $POST_HEADER, $post_body);
 
         echo "Result: ".$send_result."\r\n";
+        echo "OK4";
     }
 }
 
