@@ -1,52 +1,77 @@
-<?php
+<?php 
+	/*Get Data From POST Http Request*/
+	$datas = file_get_contents('php://input');
+	/*Decode Json From LINE Data Body*/
+	$deCode = json_decode($datas,true);
 
+	file_put_contents('log.txt', file_get_contents('php://input') . PHP_EOL, FILE_APPEND);
 
-$API_URL = 'https://api.line.me/v2/bot/message';
-$ACCESS_TOKEN = 'elwqZ8CUv5itHjMJkhMHN5Gl7TTSj6M6DSGSjg8m9vTELl2+Rb0ORo0qS3oFWSLZ88AUWyKMU
-F4Lp2LpwHNINyPEBnrccRZuSiw1WNWfTLum2DjG+PuwxNaEnI4CHONjrPfLXdD+7CEnb0JI89OxuQdB04t89/1O/w1cDnyilFU='; 
-$channelSecret = '880be8ead3610b366e41698479a4d895';
+	$replyToken = $deCode['events'][0]['replyToken'];
+	$userId = $deCode['events'][0]['source']['userId'];
+	$text = $deCode['events'][0]['message']['text'];
 
+	$messages = [];
+	$messages['replyToken'] = $replyToken;
+	$messages['messages'][0] = getFormatTextMessage("เอ้ย ถามอะไรก็ตอบได้");
 
-$POST_HEADER = array('Content-Type: application/json', 'Authorization: Bearer ' . $ACCESS_TOKEN);
+	$encodeJson = json_encode($messages);
 
-$request = file_get_contents('php://input');   // Get request content
-$request_array = json_decode($request, true);   // Decode JSON to Array
-echo "OK1";
+	$LINEDatas['url'] = "https://api.line.me/v2/bot/message/reply";
+  	$LINEDatas['token'] = "<BBtBWqmEt2Jxl5mGKEDSZhdoz/fl00JQcNdkUECPaeo45poKQ8v1ze/ZVTRB1TJ788AUWyKMUF4Lp2LpwHNINyPE
+    BnrccRZuSiw1WNWfTLuHo/+Zf/AV6T8phfTs1Vy3yLojYMJ71xYxkLb9aZg9PwdB04t89/1O/w1cDnyilFU=";
 
-function send_reply_message($url, $post_header, $post_body)
-{
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $post_header);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $post_body);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-    $result = curl_exec($ch);
-    curl_close($ch);
-echo "OK2";
-    return $result;
-}
-if ( sizeof($request_array['events']) > 0 ) {
-echo "OK3";
-    foreach ($request_array['events'] as $event) {
+  	$results = sentMessage($encodeJson,$LINEDatas);
 
-        $reply_message = '';
-        $reply_token = $event['replyToken'];
+	/*Return HTTP Request 200*/
+	http_response_code(200);
 
-        $text = $event['message']['text'];
-        $data = [
-            'replyToken' => $reply_token,
-            // 'messages' => [['type' => 'text', 'text' => json_encode($request_array) ]]  Debug Detail message
-            'messages' => [['type' => 'text', 'text' => $text ]]
-        ];
-        $post_body = json_encode($data, JSON_UNESCAPED_UNICODE);
+	function getFormatTextMessage($text)
+	{
+		$datas = [];
+		$datas['type'] = 'text';
+		$datas['text'] = $text;
 
-        $send_result = send_reply_message($API_URL.'/reply', $POST_HEADER, $post_body);
+		return $datas;
+	}
 
-        echo "Result: ".$send_result."\r\n";
-        echo "OK4";
-    }
-}
+	function sentMessage($encodeJson,$datas)
+	{
+		$datasReturn = [];
+		$curl = curl_init();
+		curl_setopt_array($curl, array(
+		  CURLOPT_URL => $datas['url'],
+		  CURLOPT_RETURNTRANSFER => true,
+		  CURLOPT_ENCODING => "",
+		  CURLOPT_MAXREDIRS => 10,
+		  CURLOPT_TIMEOUT => 30,
+		  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+		  CURLOPT_CUSTOMREQUEST => "POST",
+		  CURLOPT_POSTFIELDS => $encodeJson,
+		  CURLOPT_HTTPHEADER => array(
+		    "authorization: Bearer ".$datas['token'],
+		    "cache-control: no-cache",
+		    "content-type: application/json; charset=UTF-8",
+		  ),
+		));
 
-echo "OK";
+		$response = curl_exec($curl);
+		$err = curl_error($curl);
+
+		curl_close($curl);
+
+		if ($err) {
+		    $datasReturn['result'] = 'E';
+		    $datasReturn['message'] = $err;
+		} else {
+		    if($response == "{}"){
+			$datasReturn['result'] = 'S';
+			$datasReturn['message'] = 'Success';
+		    }else{
+			$datasReturn['result'] = 'E';
+			$datasReturn['message'] = $response;
+		    }
+		}
+
+		return $datasReturn;
+	}
 ?>
