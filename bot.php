@@ -6,6 +6,7 @@ $ACCESS_TOKEN = 'BBtBWqmEt2Jxl5mGKEDSZhdoz/fl00JQcNdkUECPaeo45poKQ8v1ze/ZVTRB1TJ
 LuHo/+Zf/AV6T8phfTs1Vy3yLojYMJ71xYxkLb9aZg9PwdB04t89/1O/w1cDnyilFU='; 
 $channelSecret = '880be8ead3610b366e41698479a4d895';
 
+
 $POST_HEADER = array('Content-Type: application/json', 'Authorization: Bearer ' . $ACCESS_TOKEN);
 
 $request = file_get_contents('php://input');   // Get request content
@@ -20,17 +21,17 @@ if ( sizeof($request_array['events']) > 0 ) {
         $reply_message = '';
         $reply_token = $event['replyToken'];
 
-        $text = $event['message']['text'];
+
         $data = [
             'replyToken' => $reply_token,
-            // 'messages' => [['type' => 'text', 'text' => json_encode($request_array) ]]  Debug Detail message
-            'messages' => [['type' => 'text', 'text' => $text ]]
+            'messages' => [['type' => 'text', 'text' => json_encode($request_array)]]
         ];
         $post_body = json_encode($data, JSON_UNESCAPED_UNICODE);
 
         $send_result = send_reply_message($API_URL.'/reply', $POST_HEADER, $post_body);
 
         echo "Result: ".$send_result."\r\n";
+        
     }
 }
 
