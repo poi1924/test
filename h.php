@@ -1,5 +1,5 @@
 <?php
-    // รับค่า POST Request จาก LINE
-	$LINEData = file_get_contents('php://input');
-    //ทำการเรียก func json_decode ตัวข้อมูลที่ได้มาเนื่องจากมีรูปเเบบเป็น JSON ** อย่าลืมใส่ true ด้วยเพื่อให้ข้อมูลออกมาในรูปเเบบของ Array Object
-	$jsonData = json_decode($LINEData,true);
+curl -X GET \
+-H 'Authorization: Bearer {BKaaM/SHph6Blvi1Ag4uIBab3hIOPVhQF3dsmUY47ca+9RiuGBgY0Lfs4XBEEmyo88AUWyKMUF4Lp2LpwHNINyPEBnrccRZuSiw1WNWfTLttE50JJsH4VEouiUD1WoYQtDdSw1b8sWZFY+UEuMFlUQdB04t89/1O/w1cDnyilFU=}' \
+https://api.line.me/v1/oauth/verify
+?>
