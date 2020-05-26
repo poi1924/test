@@ -1,77 +1,58 @@
-<?php 
-	/*Get Data From POST Http Request*/
-	$datas = file_get_contents('php://input');
-	/*Decode Json From LINE Data Body*/
-	$deCode = json_decode($datas,true);
+ <?php
+  $LINEData = file_get_contents('php://input');
+  $jsonData = json_decode($LINEData,true);
+  $replyToken = $jsonData["events"][0]["replyToken"];
+  $userID = $jsonData["events"][0]["source"]["userId"];
+  $text = $jsonData["events"][0]["message"]["text"];
+  $timestamp = $jsonData["events"][0]["timestamp"];
+  $servername = "localhost";
+  $username = "root";
+  $password = "0000";
+  $dbname = "line";
+  $mysql = new mysqli($servername, $username, $password, $dbname);
+  mysqli_set_charset($mysql, "utf8");
+  if ($mysql->connect_error){
+  $errorcode = $mysql->connect_error;
+  print("MySQL(Connection)> ".$errorcode);
+  }
+  function sendMessage($replyJson, $sendInfo){
+          $ch = curl_init($sendInfo["URL"]);
+          curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+          curl_setopt($ch, CURLINFO_HEADER_OUT, true);
+          curl_setopt($ch, CURLOPT_POST, true);
+          curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+              'Content-Type: application/json',
+              'Authorization: Bearer ' . $sendInfo["AccessToken"])
+              );
+          curl_setopt($ch, CURLOPT_POSTFIELDS, $replyJson);
+          $result = curl_exec($ch);
+          curl_close($ch);
+    return $result;
+  }
 
-	file_put_contents('log.txt', file_get_contents('php://input') . PHP_EOL, FILE_APPEND);
+  $mysql->query("INSERT INTO `LOG`(`UserID`, `Text`, `Timestamp`) VALUES ('$userID','$text','$timestamp')");
+  $getUser = $mysql->query("SELECT * FROM `Customer` WHERE `UserID`='$userID'");
+  $getuserNum = $getUser->num_rows;
+  $replyText["type"] = "text";
+  if ($getuserNum == "0"){
+    $replyText["text"] = "สวัสดีคับบบบ";
+  } else {
+    while($row = $getUser->fetch_assoc()){
+      $Name = $row['Name'];
+      $Surname = $row['Surname'];
+      $CustomerID = $row['CustomerID'];
+    }
+    $replyText["text"] = "สวัสดีคุณ $Name $Surname (#$CustomerID)";
+  }
+  $lineData['URL'] = "https://api.line.me/v2/bot/message/reply";
+  $lineData['AccessToken'] = "BKaaM/SHph6Blvi1Ag4uIBab3hIOPVhQF3dsmUY47ca+9RiuGBgY0Lfs4XBEEmyo88AUWyKMUF4Lp2LpwHNINyPEBnrccRZuSiw1WNWfTLttE50JJsH4VEouiUD1WoYQtDdSw1b8sWZFY+UEuMFlUQdB04t89/1O/w1cDnyilFU=";
 
-	$replyToken = $deCode['events'][0]['replyToken'];
-	$userId = $deCode['events'][0]['source']['userId'];
-	$text = $deCode['events'][0]['message']['text'];
+  $replyJson["replyToken"] = $replyToken;
+  $replyJson["messages"][0] = $replyText;
 
-	$messages = [];
-	$messages['replyToken'] = $replyToken;
-	$messages['messages'][0] = getFormatTextMessage($messages);
+  $encodeJson = json_encode($replyJson);
 
-	$encodeJson = json_encode($messages);
-
-	$LINEDatas['url'] = "https://api.line.me/v2/bot/message/reply";
-  	$LINEDatas['token'] = "<BBtBWqmEt2Jxl5mGKEDSZhdoz/fl00JQcNdkUECPaeo45poKQ8v1ze/ZVTRB1TJ788AUWyKMUF4Lp2LpwHNINyPE
-    BnrccRZuSiw1WNWfTLuHo/+Zf/AV6T8phfTs1Vy3yLojYMJ71xYxkLb9aZg9PwdB04t89/1O/w1cDnyilFU=";
-
-  	$results = sentMessage($encodeJson,$LINEDatas);
-
-	/*Return HTTP Request 200*/
-	http_response_code(200);
-
-	function getFormatTextMessage($text)
-	{
-		$datas = [];
-		$datas['type'] = 'text';
-		$datas['text'] = $text;
-
-		return $datas;
-	}
-
-	function sentMessage($encodeJson,$datas)
-	{
-		$datasReturn = [];
-		$curl = curl_init();
-		curl_setopt_array($curl, array(
-		  CURLOPT_URL => $datas['url'],
-		  CURLOPT_RETURNTRANSFER => true,
-		  CURLOPT_ENCODING => "",
-		  CURLOPT_MAXREDIRS => 10,
-		  CURLOPT_TIMEOUT => 30,
-		  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-		  CURLOPT_CUSTOMREQUEST => "POST",
-		  CURLOPT_POSTFIELDS => $encodeJson,
-		  CURLOPT_HTTPHEADER => array(
-		    "authorization: Bearer ".$datas['token'],
-		    "cache-control: no-cache",
-		    "content-type: application/json; charset=UTF-8",
-		  ),
-		));
-
-		$response = curl_exec($curl);
-		$err = curl_error($curl);
-
-		curl_close($curl);
-
-		if ($err) {
-		    $datasReturn['result'] = 'E';
-		    $datasReturn['message'] = $err;
-		} else {
-		    if($response == "{}"){
-			$datasReturn['result'] = 'S';
-			$datasReturn['message'] = 'Success';
-		    }else{
-			$datasReturn['result'] = 'E';
-			$datasReturn['message'] = $response;
-		    }
-		}
-
-		return $datasReturn;
-	}
-?>
+  $results = sendMessage($encodeJson,$lineData);
+  echo $results;
+  http_response_code(200);
+   ?>
