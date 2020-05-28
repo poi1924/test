@@ -1,10 +1,10 @@
 <?php
 $temp = $_GET['temp'];
 
-$servername = "localhost";
-$username = "root";
-$password = "0000";
-$dbname = "tutor";
+$servername = "us-cdbr-east-05.cleardb.net";
+$username = "b4b3b12394a0d8"";
+$password = "02d5790f";
+$dbname = "heroku_5652a807fc2262c";
 
 // Create connection
 $conn = new mysqli($servername, $username,$password, $dbname);
