@@ -5,10 +5,10 @@
   $userID = $jsonData["events"][0]["source"]["userId"];
   $text = $jsonData["events"][0]["message"]["text"];
   $timestamp = $jsonData["events"][0]["timestamp"];
-  $servername = "localhost";
-  $username = "root";
-  $password = "0000";
-  $dbname = "line";
+  $servername = "us-cdbr-east-05.cleardb.net";
+  $username = "b4b3b12394a0d8";
+  $password = "02d5790f";
+  $dbname = "heroku_5652a807fc2262c";
   $mysql = new mysqli($servername, $username, $password, $dbname);
   mysqli_set_charset($mysql, "utf8");
   if ($mysql->connect_error){
